@@ -10,29 +10,27 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$rose-palette,
-        tertiary: mat.$red-palette,
+        theme-type: dark,
+        primary: mat.$red-palette,
+        tertiary: mat.$orange-palette,
       ),
       typography: Roboto,
       density: 0,
     )
   );
+
+  // Align Material tokens with the app's Tailwind-inspired dark design system.
+  --mat-sys-primary: var(--color-primary, #b30000);
+  --mat-sys-on-primary: var(--color-primary-foreground, #ffffff);
+  --mat-sys-tertiary: var(--color-accent, #ffc800);
+  --mat-sys-on-tertiary: var(--color-accent-foreground, #000000);
+  --mat-sys-surface: var(--color-surface, #0a0a0a);
+  --mat-sys-on-surface: var(--color-foreground, #ffffff);
+  --mat-sys-background: var(--color-background, #000000);
+  --mat-sys-outline: var(--color-surface-border, #2a2a2a);
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
-  height: 100%;
+  // Default the application to a dark color theme to match the app palette.
+  color-scheme: dark;
 }
