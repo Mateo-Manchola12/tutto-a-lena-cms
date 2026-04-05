@@ -13,7 +13,7 @@ import { getValidationErrorMessage } from '../utils/validation-error-message'
   selector: 'app-login',
   imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIcon, MatRipple],
   template: `
-    <div class="mx-auto flex h-full w-lg flex-col items-stretch justify-center gap-14 px-2">
+    <main class="mx-auto flex h-full w-lg flex-col items-stretch justify-center gap-14 px-2">
       <h1 class="text-center text-4xl">Iniciar Sesión</h1>
       <form
         class="flex flex-col items-stretch justify-center gap-4"
@@ -55,7 +55,7 @@ import { getValidationErrorMessage } from '../utils/validation-error-message'
           Iniciar Sesión <i class="mat-icon">arrow_forward</i>
         </button>
       </form>
-    </div>
+    </main>
   `,
 })
 export class LoginPage {
