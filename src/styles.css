@@ -280,14 +280,6 @@
   h6 {
     @apply font-display text-foreground font-bold;
   }
-
-  .font-display {
-    font-family: var(--font-display);
-  }
-
-  .font-handwriting {
-    font-family: var(--font-script);
-  }
 }
 
 /* ==================== UTILIDADES ==================== */
@@ -376,6 +368,6 @@
   }
 
   .button {
-    @apply bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-glow hover:shadow-glow-strong inline-flex h-10 cursor-pointer items-center justify-center rounded-md px-4 text-base transition-all duration-300 ease-out hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60;
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-glow hover:shadow-glow-strong disabled:active:bg-primary-hover inline-flex h-10 cursor-pointer items-center justify-center rounded-md px-4 text-base transition-all duration-300 ease-out hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100;
   }
 }
