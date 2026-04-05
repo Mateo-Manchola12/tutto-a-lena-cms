@@ -2,7 +2,7 @@ import { type ApplicationConfig, provideBrowserGlobalErrorListeners } from '@ang
 import { provideRouter } from '@angular/router'
 
 import { routes } from './app.routes'
-import { provideFirebaseApp } from './providers/provideFirebase'
+import { provideFirebaseApp } from './providers/firebase.provider'
 
 export const appConfig: ApplicationConfig = {
   providers: [provideBrowserGlobalErrorListeners(), provideRouter(routes), provideFirebaseApp()],
