@@ -1,3 +1,377 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@import 'tailwind-animations';
+
+:root {
+  /* ==================== TIPOGRAFÍA ==================== */
+  --font-display: 'Playfair Display', ui-serif, Georgia, Cambria, serif;
+  --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-script: 'Caveat', cursive;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ==================== COLORES DE MARCA - TUTTO A LEÑA ==================== */
+
+  /* Identidad de Marca */
+  --brand-red: #b30000; /* Rojo intenso - CTAs y acentos */
+  --brand-black: #000000; /* Negro predominante - fondos */
+  --brand-yellow: #ffc800; /* Amarillo cálido - detalles */
+  --brand-fire: #ff6b35; /* Naranja fuego - efectos */
+
+  /* Backgrounds - Sistema Oscuro */
+  --color-background: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-light: #171717;
+  --color-surface-dark: #050505;
+  --color-surface-hover: #1f1f1f;
+  --color-surface-border: #2a2a2a;
+
+  /* Texto - Alto Contraste */
+  --color-foreground: #ffffff;
+  --color-foreground-secondary: #f5f5f5;
+  --color-muted: #9ca3af;
+  --color-muted-foreground: #6b7280;
+
+  /* Primary - Rojo de Marca */
+  --color-primary: #b30000;
+  --color-primary-hover: #8b0000;
+  --color-primary-active: #670000;
+  --color-primary-foreground: #ffffff;
+
+  /* Accent - Amarillo/Fuego */
+  --color-accent: #ffc800;
+  --color-accent-foreground: #000000;
+
+  /* Estados */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ==================== ESPACIADO ==================== */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  --spacing-4xl: 6rem;
+
+  /* ==================== BORDES ==================== */
+  --border-radius-xs: 0.125rem;
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+  --border-radius-full: 9999px;
+
+  /* ==================== SOMBRAS - ESTILO OSCURO ==================== */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.9);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.95);
+  --shadow-glow: 0 0 40px rgba(179, 0, 0, 0.4);
+  --shadow-glow-strong: 0 0 60px rgba(179, 0, 0, 0.6);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+
+  /* ==================== TRANSICIONES ==================== */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ==================== Z-INDEX ==================== */
+  --z-hide: -1;
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-notification: 800;
+
+  /* ==================== LAYOUTS ==================== */
+  --section-padding-mobile: 3rem;
+  --section-padding-tablet: 4rem;
+  --section-padding-desktop: 6rem;
+
+  --header-height-mobile: 64px;
+  --header-height-desktop: 80px;
+
+  --hero-height-mobile: 70vh;
+  --hero-height-tablet: 80vh;
+  --hero-height-desktop: 100vh;
+
+  /* ==================== ACCESIBILIDAD ==================== */
+  --focus-outline: 2px solid var(--color-primary);
+  --focus-outline-offset: 2px;
+}
+
+/* Respetar preferencia de reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 1ms;
+    --transition-base: 1ms;
+    --transition-slow: 1ms;
+  }
+}
+
+/* ==================== TAILWIND V4 THEME ==================== */
+@theme {
+  /* Container */
+  --container-center: true;
+  --container-padding: 2rem;
+  --breakpoint-2xl: 1400px;
+
+  /* === Fuentes === */
+  --font-display: 'Playfair Display', ui-serif, Georgia, Cambria, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-handwriting: 'Caveat', cursive;
+
+  /* === Colores del Sistema (Oscuro) === */
+  --color-background: hsl(0 0% 0%);
+  --color-foreground: hsl(0 0% 100%);
+  --color-border: hsl(0 0% 16%);
+  --color-input: hsl(0 0% 16%);
+  --color-ring: hsl(0 100% 35.1%);
+
+  /* === Primary (Rojo #b30000) === */
+  --color-primary: hsl(0 100% 35.1%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary-hover: hsl(0 100% 27%);
+  --color-primary-active: hsl(0 100% 20%);
+
+  /* === Secondary === */
+  --color-secondary: hsl(0 0% 10%);
+  --color-secondary-foreground: hsl(0 0% 98%);
+
+  /* === Accent (Amarillo #ffc800) === */
+  --color-accent: hsl(48 100% 50%);
+  --color-accent-foreground: hsl(0 0% 0%);
+  --color-accent-hover: hsl(48 100% 45%);
+
+  /* === Superficies === */
+  --color-surface: hsl(0 0% 4%);
+  --color-surface-light: hsl(0 0% 9%);
+  --color-surface-dark: hsl(0 0% 2%);
+  --color-surface-hover: hsl(0 0% 12%);
+  --color-surface-border: hsl(0 0% 16%);
+
+  /* === Muted === */
+  --color-muted: hsl(0 0% 10%);
+  --color-muted-foreground: hsl(0 0% 60%);
+
+  /* === Destructive === */
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+
+  /* === Card === */
+  --color-card: hsl(0 0% 4%);
+  --color-card-foreground: hsl(0 0% 98%);
+
+  /* === Popover === */
+  --color-popover: hsl(0 0% 4%);
+  --color-popover-foreground: hsl(0 0% 98%);
+
+  /* === Border Radius === */
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.25rem;
+
+  /* === Sombras === */
+  --shadow-glow: 0 0 40px hsl(0 100% 35.1% / 0.4);
+  --shadow-glow-strong: 0 0 60px hsl(0 100% 35.1% / 0.6);
+  --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.8);
+  --shadow-modal: 0 20px 50px -10px hsl(0 0% 0% / 0.9);
+
+  /* === Animaciones === */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-glow: glow 2s ease-in-out infinite;
+  --animate-slide-in: slide-in-from-bottom 0.5s ease-out;
+}
+
+/* ==================== KEYFRAMES ==================== */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px hsl(0 100% 35.1% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(0 100% 35.1% / 0.6);
+  }
+}
+
+/* ==================== ESTILOS BASE ==================== */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display text-foreground font-bold;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-handwriting {
+    font-family: var(--font-script);
+  }
+}
+
+/* ==================== UTILIDADES ==================== */
+@layer utilities {
+  /* Gradientes */
+  .bg-gradient-hero {
+    background: linear-gradient(
+      to right,
+      hsl(0 0% 0% / 1) 0%,
+      hsl(0 0% 0% / 0.95) 30%,
+      hsl(0 0% 0% / 0.8) 50%,
+      hsl(0 0% 0% / 0.6) 70%,
+      hsl(0 0% 0% / 0.4) 100%
+    );
+  }
+
+  .bg-gradient-fire {
+    background: linear-gradient(135deg, #b30000 0%, #ff6b35 100%);
+  }
+
+  /* Máscaras */
+  .mask-r-from-black {
+    mask-image: linear-gradient(to left, black 60%, transparent 100%);
+  }
+
+  /* Sombras */
+  .shadow-glow {
+    box-shadow: 0 0 40px hsl(0 100% 35.1% / 0.4);
+  }
+
+  .shadow-glow-strong {
+    box-shadow: 0 0 60px hsl(0 100% 35.1% / 0.6);
+  }
+
+  /* Textura pizarra */
+  .texture-chalkboard {
+    background-color: #1a1a1a;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+      );
+  }
+
+  /* Efectos de texto */
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  .text-glow-strong {
+    text-shadow:
+      0 0 20px currentColor,
+      0 0 30px currentColor;
+  }
+
+  .icon-fill {
+    font-variation-settings: 'FILL' 1;
+  }
+}
+
+@layer components {
+  .mat-icon {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+}
