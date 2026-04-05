@@ -16,7 +16,7 @@
   ],
   "hosting": {
     "site": "tutto-a-lena-dashboard",
-    "public": "public",
+    "public": "dist/tutto-a-lena-cms/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
