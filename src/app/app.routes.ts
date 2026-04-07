@@ -8,12 +8,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
-        path: 'contact-info',
-        loadComponent: () => import('./pages/contact-info.page').then((m) => m.ContactInfoPage),
+        path: 'general-info',
+        loadComponent: () => import('./pages/general-info.page').then((m) => m.GeneralInfoPage),
       },
       {
-        path: 'social-media',
-        loadComponent: () => import('./pages/social-media.page').then((m) => m.SocialMediaPage),
+        path: 'contact-info',
+        loadComponent: () => import('./pages/contact-info.page').then((m) => m.ContactInfoPage),
       },
       {
         path: 'menu',
