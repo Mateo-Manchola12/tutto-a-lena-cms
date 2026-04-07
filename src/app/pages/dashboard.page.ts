@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common'
 import { Component, inject } from '@angular/core'
 import { MatListModule } from '@angular/material/list'
+import { MatSnackBar } from '@angular/material/snack-bar'
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { BuildService } from '../services/build.service'
 import { InfoService } from '../services/info.service'
 import { SaveService } from '../services/save.service'
 
@@ -31,7 +33,15 @@ interface SectionInfo {
               <p class="text-muted-foreground">Sistema de Gestión de Contenidos</p>
             </div>
           </a>
-          <button class="button" [disabled]="saveService.isChangesSaved()">Guardar Cambios</button>
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
+              [class]="statusClass()"
+            >
+              {{ publishLabel() }}
+            </span>
+            <button class="button" [disabled]="isPublishDisabled()" (click)="onPublish()">Publicar Cambios</button>
+          </div>
         </div>
       </header>
       <aside class="border-r">
@@ -94,13 +104,60 @@ interface SectionInfo {
 export class DashboardPage {
   info = inject(InfoService)
   saveService = inject(SaveService)
+  buildService = inject(BuildService)
+  private snackbar = inject(MatSnackBar)
+
+  isPublishDisabled() {
+    const status = this.buildService.current()?.status
+
+    if (status === 'publishing') {
+      return true
+    }
+
+    if (status === 'failed') {
+      return false
+    }
+
+    return this.saveService.isChangesSaved()
+  }
+
+  publishLabel() {
+    const status = this.buildService.current()?.status
+
+    if (status === 'publishing') return 'Publicando'
+    if (status === 'published') return 'Publicado'
+    if (status === 'failed') return 'Fallido'
+    return 'En espera'
+  }
+
+  statusClass() {
+    const status = this.buildService.current()?.status
+
+    if (status === 'publishing') return 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+    if (status === 'published') return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+    if (status === 'failed') return 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+    return 'bg-white/10 text-foreground border-white/10'
+  }
+
+  async onPublish() {
+    try {
+      await this.saveService.saveChanges()
+      this.snackbar.open('Publicación iniciada correctamente', 'Cerrar', {
+        duration: 3000,
+      })
+    } catch (error: unknown) {
+      this.snackbar.open((error as Error).message || 'No se pudo iniciar la publicación', 'Cerrar', {
+        duration: 5000,
+      })
+    }
+  }
 
   ROUTES: SectionInfo[] = [
     {
       label: 'Negocio',
       routes: [
+        { label: 'Información general', path: 'general-info', icon: 'info' },
         { label: 'Datos de contacto', path: 'contact-info', icon: 'phone' },
-        { label: 'Redes sociales', path: 'social-media', icon: 'share' },
       ],
     },
     {
