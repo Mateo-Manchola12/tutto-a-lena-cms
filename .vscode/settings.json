@@ -19,5 +19,5 @@
     "source.organizeImports": "always"
   },
   "eslint.validate": ["typescript", "javascript", "html"],
-  "cSpell.words": ["tutto"]
+  "cSpell.words": ["firestore", "Firestore", "tutto"]
 }
