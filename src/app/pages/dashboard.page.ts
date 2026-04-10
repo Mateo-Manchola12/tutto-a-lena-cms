@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common'
-import { Component, inject } from '@angular/core'
+import { Component, computed, effect, inject, signal } from '@angular/core'
 import { MatListModule } from '@angular/material/list'
+import type { MatSnackBarRef } from '@angular/material/snack-bar'
 import { MatSnackBar } from '@angular/material/snack-bar'
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { PublishingSnackbarComponent } from '../components/snackbars/publishing.component'
 import { BuildService } from '../services/build.service'
 import { InfoService } from '../services/info.service'
 import { SaveService } from '../services/save.service'
@@ -105,10 +107,65 @@ export class DashboardPage {
   info = inject(InfoService)
   saveService = inject(SaveService)
   buildService = inject(BuildService)
+
+  status = computed(() => this.buildService.current()?.status ?? 'unknown')
+
+  private prevStatus: string | null = null
+  private didInitialStatusCheck = false
+  private _forcePublishingUi$ = signal(false)
+
+  private uiStatus = computed(() => {
+    if (this._forcePublishingUi$()) {
+      return 'publishing'
+    }
+
+    return this.status()
+  })
+
   private snackbar = inject(MatSnackBar)
 
+  private loadingRef: MatSnackBarRef<PublishingSnackbarComponent> | null = null
+
+  constructor() {
+    effect(() => {
+      const s = this.status()
+
+      if (!this.didInitialStatusCheck) {
+        this.didInitialStatusCheck = true
+        this.prevStatus = s
+
+        if (s === 'publishing') {
+          this.loadingRef ??= this.snackbar.openFromComponent(PublishingSnackbarComponent, {
+            duration: 0,
+          })
+        }
+
+        return
+      }
+
+      if (s !== 'publishing') {
+        this._forcePublishingUi$.set(false)
+        this.loadingRef?.dismiss()
+        this.loadingRef = null
+      }
+
+      if (this.prevStatus === s) return
+
+      this.prevStatus = s
+
+      switch (s) {
+        case 'published':
+          this.snackbar.open('Publicación completada', 'Cerrar')
+          break
+        case 'failed':
+          this.snackbar.open('Publicación fallida', 'Cerrar')
+          break
+      }
+    })
+  }
+
   isPublishDisabled() {
-    const status = this.buildService.current()?.status
+    const status = this.uiStatus()
 
     if (status === 'publishing') {
       return true
@@ -122,8 +179,9 @@ export class DashboardPage {
   }
 
   publishLabel() {
-    const status = this.buildService.current()?.status
+    const status = this.uiStatus()
 
+    if (!this.saveService.isChangesSaved() && status !== 'failed') return 'Borrador'
     if (status === 'publishing') return 'Publicando'
     if (status === 'published') return 'Publicado'
     if (status === 'failed') return 'Fallido'
@@ -131,8 +189,9 @@ export class DashboardPage {
   }
 
   statusClass() {
-    const status = this.buildService.current()?.status
+    const status = this.uiStatus()
 
+    if (!this.saveService.isChangesSaved() && status !== 'failed') return 'bg-white/10 text-foreground border-white/10'
     if (status === 'publishing') return 'bg-amber-500/10 text-amber-300 border-amber-500/30'
     if (status === 'published') return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
     if (status === 'failed') return 'bg-rose-500/10 text-rose-300 border-rose-500/30'
@@ -142,8 +201,15 @@ export class DashboardPage {
   async onPublish() {
     try {
       await this.saveService.saveChanges()
-      this.snackbar.open('Publicación iniciada correctamente', 'Cerrar', {
+      const startedRef = this.snackbar.open('Publicación iniciada correctamente', 'Cerrar', {
         duration: 3000,
+      })
+
+      startedRef.afterDismissed().subscribe(() => {
+        this._forcePublishingUi$.set(true)
+        this.loadingRef ??= this.snackbar.openFromComponent(PublishingSnackbarComponent, {
+          duration: 0,
+        })
       })
     } catch (error: unknown) {
       this.snackbar.open((error as Error).message || 'No se pudo iniciar la publicación', 'Cerrar', {
