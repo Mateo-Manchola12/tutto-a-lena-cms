@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core'
-import type { CollectionReference } from 'firebase/firestore'
-import { collection, doc, getDoc, getDocs, getFirestore, updateDoc } from 'firebase/firestore'
+import type { CollectionReference, DocumentData } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, getFirestore, setDoc, updateDoc } from 'firebase/firestore'
 import { FirebaseApp } from '../providers/firebase.provider'
 
 @Injectable({
@@ -35,6 +35,17 @@ export class FirestoreService {
       await updateDoc(ref, updatedData)
     } catch (error) {
       console.error('Error updating document:', error)
+    }
+  }
+
+  async setDocument(collectionName: string, docId: string, data: unknown) {
+    const ref = doc(this._db, collectionName, docId)
+
+    try {
+      await setDoc(ref, data as DocumentData)
+    } catch (error) {
+      console.error('Error setting document:', error)
+      throw error
     }
   }
 }
