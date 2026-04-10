@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core'
+import { computed, inject, Injectable } from '@angular/core'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { FirebaseApp } from '../providers/firebase.provider'
 import { BuildService } from './build.service'
@@ -10,13 +10,12 @@ export class SaveService {
   private _app = inject(FirebaseApp)
   private builds = inject(BuildService)
   private functions = getFunctions(this._app)
-  private _changeCounter$ = signal(0)
 
   private saveChangesCallable = httpsCallable<unknown, { status: 'ok'; message: string }>(
     this.functions,
     'triggerAstroBuild',
   )
-  isChangesSaved = computed(() => this._changeCounter$() === 0)
+  isChangesSaved = computed(() => !this.builds.hasPendingChanges())
   lastUpdate = computed<Date>(() => {
     const updatedAt = this.builds.current()?.updatedAt
 
@@ -31,14 +30,13 @@ export class SaveService {
     return new Date()
   })
 
-  addChange() {
-    this._changeCounter$.update((counter) => counter + 1)
-  }
-
   async saveChanges() {
-    const isRetryAfterFailedDeploy = this.builds.current()?.status === 'failed'
+    await this.builds.waitUntilHydrated()
 
-    if (this._changeCounter$() === 0 && !isRetryAfterFailedDeploy) {
+    const isRetryAfterFailedDeploy = this.builds.current()?.status === 'failed'
+    const hasPendingChanges = this.builds.hasPendingChanges()
+
+    if (!hasPendingChanges && !isRetryAfterFailedDeploy) {
       return
     }
 
@@ -47,7 +45,6 @@ export class SaveService {
     try {
       await this.saveChangesCallable()
 
-      this._changeCounter$.set(0)
       console.info(`Build ${publish.buildId} triggered successfully`)
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'No se pudo disparar la build'
