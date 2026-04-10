@@ -2,28 +2,32 @@ import { inject, Injectable, signal } from '@angular/core'
 import type { Business } from '../../types/business'
 import { BuildService } from './build.service'
 import { FirestoreService } from './firestore.service'
-import { SaveService } from './save.service'
 
 @Injectable({
   providedIn: 'root',
 })
 export class BusinessService {
   private firestore = inject(FirestoreService)
-  private save = inject(SaveService)
   private builds = inject(BuildService)
 
   private _businessData$ = signal<Business | null>(null)
   private _loading$ = signal(false)
 
   constructor() {
-    void this.loadBusinessData()
+    void this.initialize()
+  }
+
+  private async initialize() {
+    await this.builds.waitUntilHydrated()
+    await this.loadBusinessData()
   }
 
   async loadBusinessData() {
     this._loading$.set(true)
 
     try {
-      const data = await this.firestore.getDocument<Business>('business_info', '1')
+      const draftId = this.builds.getEffectivePointer('lastContentId') ?? 1
+      const data = await this.firestore.getDocument<Business>('business_info', String(draftId))
       this._businessData$.set(data)
     } catch (error) {
       console.error('Error loading business data:', error)
@@ -47,9 +51,12 @@ export class BusinessService {
     this._loading$.set(true)
 
     try {
-      await this.firestore.updateDocument('business_info', '1', updatedData)
-      await this.builds.markDraftPointer('lastContentId', 1)
-      this.save.addChange()
+      const publishedId = this.builds.current()?.lastContentId ?? 0
+      const pendingId = this.builds.getPendingPointer('lastContentId')
+      const nextDraftId = pendingId ?? publishedId + 1
+
+      await this.firestore.setDocument('business_info', String(nextDraftId), updatedData)
+      await this.builds.markDraftPointer('lastContentId', nextDraftId)
       this._businessData$.set(updatedData)
     } catch (error) {
       console.error('Error saving business data:', error)
