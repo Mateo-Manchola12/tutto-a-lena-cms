@@ -3,21 +3,26 @@ interface MenuItem {
   name: string
   description: string
   price?: number
-  category: MenuCategory
-  image?: string
-  ingredients?: string[]
-  tags?: MenuTag[]
+  ingredients: string[]
+  tags: MenuTag['id'][]
 }
 
 interface MenuTag {
+  id: string
   name: string
-  label: string
   emoji: string
 }
 
 interface MenuCategory {
+  id: string
   name: string
-  label: string
   emoji: string
   description: string
+  products: MenuItem[]
+}
+
+interface Menu {
+  id: string
+  categories: MenuCategory[]
+  tags: MenuTag[]
 }
