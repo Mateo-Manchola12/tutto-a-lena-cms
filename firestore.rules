@@ -17,6 +17,11 @@ service cloud.firestore {
         request.resource.data.keys().hasAll(['status', 'buildId', 'updatedAt']);
     }
 
+    match /builds/pending {
+      allow read: if true;
+      allow create, update: if isAuthenticated();
+    }
+
     match /builds/{buildId} {
       allow read: if true;
       allow create, update: if isAuthenticated() &&
