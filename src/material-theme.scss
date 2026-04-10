@@ -28,6 +28,14 @@ html {
   --mat-sys-on-surface: var(--color-foreground, #ffffff);
   --mat-sys-background: var(--color-background, #000000);
   --mat-sys-outline: var(--color-surface-border, #2a2a2a);
+
+  @include mat.snack-bar-overrides(
+    (
+      container-color: var(--color-surface, #0a0a0a),
+      supporting-text-color: var(--color-foreground, #ffffff),
+      supporting-text-size: 1.2rem,
+    )
+  );
 }
 
 body {
