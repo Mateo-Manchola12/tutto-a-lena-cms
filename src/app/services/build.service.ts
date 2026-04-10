@@ -1,7 +1,9 @@
-import { Injectable, inject, signal } from '@angular/core'
+import { computed, inject, Injectable, signal } from '@angular/core'
 import { doc, getFirestore, onSnapshot, runTransaction, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import type { BuildCurrent, BuildHistory, BuildPointers, PublishStatus } from '../../types/build'
 import { FirebaseApp } from '../providers/firebase.provider'
+
+type PendingPointers = Partial<BuildPointers> & { updatedAt?: unknown }
 
 const DEFAULT_POINTERS: BuildPointers = {
   lastMenuId: null,
@@ -18,33 +20,88 @@ export class BuildService {
   private db = getFirestore(this.app)
 
   private currentRef = doc(this.db, 'builds', 'current')
+  private pendingRef = doc(this.db, 'builds', 'pending')
   private _current$ = signal<BuildCurrent | null>(null)
+  private _pending$ = signal<PendingPointers | null>(null)
+  private hasLoadedCurrent = false
+  private hasLoadedPending = false
+  private resolveHydrated: (() => void) | null = null
+  private hydratedPromise = new Promise<void>((resolve) => {
+    this.resolveHydrated = resolve
+  })
 
   readonly current = this._current$.asReadonly()
+  readonly hasPendingChanges = computed(() => {
+    const pending = this._pending$()
+
+    if (!pending) {
+      return false
+    }
+
+    return (
+      pending.lastMenuId !== null ||
+      pending.lastContentId !== null ||
+      pending.lastEventsId !== null ||
+      pending.lastGalleryId !== null
+    )
+  })
+
+  private markHydratedIfReady() {
+    if (this.hasLoadedCurrent && this.hasLoadedPending) {
+      this.resolveHydrated?.()
+      this.resolveHydrated = null
+    }
+  }
+
+  async waitUntilHydrated() {
+    await this.hydratedPromise
+  }
 
   constructor() {
     onSnapshot(this.currentRef, (snap) => {
+      this.hasLoadedCurrent = true
+
       if (!snap.exists()) {
         this._current$.set(null)
+        this.markHydratedIfReady()
         return
       }
 
       this._current$.set(snap.data() as BuildCurrent)
+      this.markHydratedIfReady()
+    })
+
+    onSnapshot(this.pendingRef, (snap) => {
+      this.hasLoadedPending = true
+
+      if (!snap.exists()) {
+        this._pending$.set(null)
+        this.markHydratedIfReady()
+        return
+      }
+
+      this._pending$.set(snap.data() as PendingPointers)
+      this.markHydratedIfReady()
     })
   }
 
   async markDraftPointer(domain: keyof BuildPointers, id: number) {
     await setDoc(
-      this.currentRef,
+      this.pendingRef,
       {
-        ...DEFAULT_POINTERS,
-        status: 'idle',
-        buildId: null,
         updatedAt: serverTimestamp(),
         [domain]: id,
-      } satisfies Partial<BuildCurrent>,
+      } satisfies PendingPointers,
       { merge: true },
     )
+  }
+
+  getPendingPointer(domain: keyof BuildPointers): number | null {
+    return this._pending$()?.[domain] ?? null
+  }
+
+  getEffectivePointer(domain: keyof BuildPointers): number | null {
+    return this.getPendingPointer(domain) ?? this.current()?.[domain] ?? null
   }
 
   async startPublish() {
@@ -53,16 +110,18 @@ export class BuildService {
     const snapshot = await runTransaction(this.db, async (tx) => {
       const currentSnap = await tx.get(this.currentRef)
       const current = currentSnap.exists() ? (currentSnap.data() as BuildCurrent) : null
+      const pendingSnap = await tx.get(this.pendingRef)
+      const pending = pendingSnap.exists() ? (pendingSnap.data() as PendingPointers) : null
 
       if (current?.status === 'publishing') {
         throw new Error('Ya existe una publicación en curso')
       }
 
       const buildPointers: BuildPointers = {
-        lastMenuId: current?.lastMenuId ?? null,
-        lastContentId: current?.lastContentId ?? null,
-        lastEventsId: current?.lastEventsId ?? null,
-        lastGalleryId: current?.lastGalleryId ?? null,
+        lastMenuId: pending?.lastMenuId ?? current?.lastMenuId ?? 1,
+        lastContentId: pending?.lastContentId ?? current?.lastContentId ?? 1,
+        lastEventsId: pending?.lastEventsId ?? current?.lastEventsId ?? 1,
+        lastGalleryId: pending?.lastGalleryId ?? current?.lastGalleryId ?? 1,
       }
 
       tx.set(
@@ -84,6 +143,11 @@ export class BuildService {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       } satisfies Partial<BuildHistory>)
+
+      tx.set(this.pendingRef, {
+        ...DEFAULT_POINTERS,
+        updatedAt: serverTimestamp(),
+      } satisfies PendingPointers)
 
       return {
         buildId: nextBuildId,
