@@ -15,5 +15,13 @@ module.exports = {
         parser: 'angular',
       },
     },
+    {
+      files: ['functions/**/*.ts', 'functions/.eslintrc.js'],
+      options: {
+        semi: true,
+        singleQuote: false,
+        trailingComma: 'es5',
+      },
+    },
   ],
 }
