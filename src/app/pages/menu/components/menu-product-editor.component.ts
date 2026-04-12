@@ -7,7 +7,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete'
 import { MatChipsModule } from '@angular/material/chips'
 import { MatExpansionModule } from '@angular/material/expansion'
 import { MatFormFieldModule } from '@angular/material/form-field'
-import { MatIcon } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
 import type { Subscription } from 'rxjs'
 import { startWith } from 'rxjs'
@@ -16,10 +15,18 @@ import type { MenuProductEditorActions, ProductFormGroup } from '../menu-form.ty
 @Component({
   selector: 'app-menu-product-editor',
   template: `
-    <mat-expansion-panel>
+    <mat-expansion-panel [expanded]="isExpanded()">
       <mat-expansion-panel-header>
         <mat-panel-title>{{ menuItem().value.name }}</mat-panel-title>
         <mat-panel-description>{{ menuItem().value.description }} </mat-panel-description>
+        <button
+          type="button"
+          class="m-2 flex cursor-pointer items-center justify-center rounded-md p-1 text-red-400 hover:bg-red-500/10"
+          aria-label="Eliminar producto"
+          (click)="$event.stopPropagation(); actions().removeProduct(menuItem())"
+        >
+          <i class="mat-icon">delete</i>
+        </button>
       </mat-expansion-panel-header>
 
       <div class="flex gap-4">
@@ -53,7 +60,7 @@ import type { MenuProductEditorActions, ProductFormGroup } from '../menu-form.ty
             <mat-chip-row (removed)="actions().removeIngredient(menuItem(), ingredient)">
               {{ ingredient }}
               <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
+                <i class="mat-icon">cancel</i>
               </button>
             </mat-chip-row>
           }
@@ -73,7 +80,7 @@ import type { MenuProductEditorActions, ProductFormGroup } from '../menu-form.ty
             <mat-chip-row [value]="tag" (removed)="actions().removeTag(menuItem(), tag)">
               {{ getTagLabel(tag) }}
               <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
+                <i class="mat-icon">cancel</i>
               </button>
             </mat-chip-row>
           }
@@ -102,7 +109,6 @@ import type { MenuProductEditorActions, ProductFormGroup } from '../menu-form.ty
     MatExpansionModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIcon,
     MatAutocompleteModule,
     MatChipsModule,
   ],
@@ -111,6 +117,7 @@ import type { MenuProductEditorActions, ProductFormGroup } from '../menu-form.ty
 export class MenuProductEditorComponent {
   readonly menuItem = input.required<ProductFormGroup>()
   readonly actions = input.required<MenuProductEditorActions>()
+  readonly isExpanded = input(false)
   readonly tagFilterControl = new FormControl('', { nonNullable: true })
   private readonly selectedTagIds = signal<string[]>([])
   private readonly tagQuery = toSignal(
