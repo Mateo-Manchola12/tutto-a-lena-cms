@@ -2,7 +2,7 @@ interface MenuItem {
   id: string
   name: string
   description: string
-  price?: number
+  price: number | null
   ingredients: string[]
   tags: MenuTag['id'][]
 }
@@ -22,7 +22,6 @@ interface MenuCategory {
 }
 
 interface Menu {
-  id: string
   categories: MenuCategory[]
   tags: MenuTag[]
 }
