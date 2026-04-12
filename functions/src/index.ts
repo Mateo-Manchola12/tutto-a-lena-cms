@@ -111,18 +111,15 @@ async function triggerGitHubAstroBuild(githubToken: string) {
   const workFlowId = "astro.yml";
   const ref = "main";
 
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workFlowId}/dispatches`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `token ${githubToken}`,
-        Accept: "application/vnd.github.v3+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ref }),
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workFlowId}/dispatches`, {
+    method: "POST",
+    headers: {
+      Authorization: `token ${githubToken}`,
+      Accept: "application/vnd.github.v3+json",
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({ ref }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
