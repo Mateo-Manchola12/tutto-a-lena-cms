@@ -38,6 +38,9 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+.eslintcache
+.firebase
+
 
 # System files
 .DS_Store

@@ -1,12 +1,13 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  template: `
+    <div class="font-display h-dvh w-screen">
+      <router-outlet />
+    </div>
+  `,
 })
-export class App {
-  protected readonly title = signal('tutto-a-lena-cms');
-}
+export class App {}

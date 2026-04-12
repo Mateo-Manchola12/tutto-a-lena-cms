@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidStatus(status) {
+      return status in ['idle', 'publishing', 'published', 'failed'];
+    }
+
+    match /builds/current {
+      allow read: if true;
+      allow create, update: if isAuthenticated() &&
+        isValidStatus(request.resource.data.status) &&
+        request.resource.data.keys().hasAll(['status', 'buildId', 'updatedAt']);
+    }
+
+    match /builds/pending {
+      allow read: if true;
+      allow create, update: if isAuthenticated();
+    }
+
+    match /builds/{buildId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated() &&
+        request.resource.data.buildId == buildId &&
+        isValidStatus(request.resource.data.status);
+    }
+
+    match /{document=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}

@@ -1,0 +1,44 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$red-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  // Align Material tokens with the app's Tailwind-inspired dark design system.
+  --mat-sys-primary: var(--color-primary, #b30000);
+  --mat-sys-on-primary: var(--color-primary-foreground, #ffffff);
+  --mat-sys-tertiary: var(--color-accent, #ffc800);
+  --mat-sys-on-tertiary: var(--color-accent-foreground, #000000);
+  --mat-sys-surface: var(--color-surface, #0a0a0a);
+  --mat-sys-on-surface: var(--color-foreground, #ffffff);
+  --mat-sys-background: var(--color-background, #000000);
+  --mat-sys-outline: var(--color-surface-border, #2a2a2a);
+
+  @include mat.snack-bar-overrides(
+    (
+      container-color: var(--color-surface, #0a0a0a),
+      supporting-text-color: var(--color-foreground, #ffffff),
+      supporting-text-size: 1.2rem,
+    )
+  );
+}
+
+body {
+  // Default the application to a dark color theme to match the app palette.
+  color-scheme: dark;
+}
