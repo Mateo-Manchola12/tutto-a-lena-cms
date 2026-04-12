@@ -22,27 +22,27 @@ import type { GalleryImageFormGroup } from '../gallery-form.types'
 
       <!-- Alt text -->
       <div class="flex flex-col gap-1" [formGroup]="control">
-        <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <label class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
           Texto alternativo (alt)
         </label>
         <input
           formControlName="alt"
           type="text"
           placeholder="Describe la imagen para accesibilidad y SEO"
-          class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+          class="focus:border-primary/60 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none"
         />
       </div>
 
       <!-- Description -->
       <div class="flex flex-col gap-1" [formGroup]="control">
-        <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <label class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
           Descripción (overlay en hover)
         </label>
         <textarea
           formControlName="description"
           rows="3"
           placeholder="Texto que aparece al pasar el ratón sobre la foto"
-          class="resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+          class="focus:border-primary/60 resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none"
         ></textarea>
       </div>
 
@@ -50,7 +50,7 @@ import type { GalleryImageFormGroup } from '../gallery-form.types'
       <div class="flex items-center justify-between" [formGroup]="control">
         <div>
           <p class="text-sm font-medium">Destacada en Home</p>
-          <p class="text-xs text-muted-foreground">Aparece en la sección de galería de la portada</p>
+          <p class="text-muted-foreground text-xs">Aparece en la sección de galería de la portada</p>
         </div>
         <button
           type="button"
@@ -68,33 +68,25 @@ import type { GalleryImageFormGroup } from '../gallery-form.types'
 
       <!-- Span controls -->
       <div class="flex flex-col gap-3">
-        <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Tamaño en el grid
-        </p>
+        <p class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">Tamaño en el grid</p>
 
         <!-- Breakpoint rows -->
         @for (bp of breakpoints; track bp.key) {
           <div class="rounded-lg border border-white/10 bg-white/5 p-3">
-            <p class="mb-2 text-xs text-muted-foreground">{{ bp.label }}</p>
+            <p class="text-muted-foreground mb-2 text-xs">{{ bp.label }}</p>
             <div class="flex gap-3">
               <!-- colSpan -->
               <div class="flex flex-1 flex-col gap-1" [formGroup]="control.controls.colSpan">
-                <p class="text-xs text-muted-foreground">Ancho</p>
-                <mat-button-toggle-group
-                  [formControlName]="bp.key"
-                  class="w-full"
-                >
+                <p class="text-muted-foreground text-xs">Ancho</p>
+                <mat-button-toggle-group [formControlName]="bp.key" class="w-full">
                   <mat-button-toggle [value]="1" class="flex-1 text-xs">1 col</mat-button-toggle>
                   <mat-button-toggle [value]="2" class="flex-1 text-xs">2 cols</mat-button-toggle>
                 </mat-button-toggle-group>
               </div>
               <!-- rowSpan -->
               <div class="flex flex-1 flex-col gap-1" [formGroup]="control.controls.rowSpan">
-                <p class="text-xs text-muted-foreground">Alto</p>
-                <mat-button-toggle-group
-                  [formControlName]="bp.key"
-                  class="w-full"
-                >
+                <p class="text-muted-foreground text-xs">Alto</p>
+                <mat-button-toggle-group [formControlName]="bp.key" class="w-full">
                   <mat-button-toggle [value]="1" class="flex-1 text-xs">1 fila</mat-button-toggle>
                   <mat-button-toggle [value]="2" class="flex-1 text-xs">2 filas</mat-button-toggle>
                 </mat-button-toggle-group>
@@ -108,7 +100,7 @@ import type { GalleryImageFormGroup } from '../gallery-form.types'
       <div class="mt-auto flex gap-2 pt-2">
         <button
           type="button"
-          class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors"
+          class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm transition-colors hover:bg-white/10"
           (click)="editorClose.emit()"
         >
           <i class="mat-icon text-base">close</i>
@@ -116,9 +108,13 @@ import type { GalleryImageFormGroup } from '../gallery-form.types'
         </button>
         <button
           type="button"
-          matTooltip="{{ control.value.storagePath ? 'Eliminar foto de Storage y galería' : 'No se puede eliminar: es una imagen demo' }}"
+          matTooltip="{{
+            control.value.storagePath
+              ? 'Eliminar foto de Storage y galería'
+              : 'No se puede eliminar: es una imagen demo'
+          }}"
           matTooltipPosition="above"
-          class="flex items-center justify-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 transition-colors"
+          class="flex items-center justify-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20"
           (click)="editorDelete.emit()"
         >
           <i class="mat-icon text-base">delete</i>

@@ -1,11 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core'
 import { Subject } from 'rxjs'
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage'
+import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import type { GalleryDocument } from '../../types/gallery'
 import { FirebaseStorage } from '../providers/firebase.provider'
 import { BuildService } from './build.service'

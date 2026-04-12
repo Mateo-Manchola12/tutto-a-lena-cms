@@ -22,7 +22,7 @@ if (getApps().length === 0) {
 const githubApiKey = defineSecret("GITHUB_API_KEY");
 const astroCallbackToken = defineSecret("ASTRO_CALLBACK_TOKEN");
 
-type PublishCompletionStatus = "published" | "failed"
+type PublishCompletionStatus = "published" | "failed";
 
 /**
  * Extracts the shared secret sent by the deployment workflow.
@@ -96,7 +96,7 @@ export const triggerAstroBuild = onCall(
   },
   async () => {
     return triggerGitHubAstroBuild(githubApiKey.value());
-  },
+  }
 );
 
 /**
@@ -140,7 +140,7 @@ export const scheduledAstroBuildAtMidnightSpain = onSchedule(
   },
   async () => {
     await triggerGitHubAstroBuild(githubApiKey.value());
-  },
+  }
 );
 
 export const completeAstroDeploy = onRequest(
@@ -231,5 +231,5 @@ export const completeAstroDeploy = onRequest(
     });
 
     response.status(200).json(result);
-  },
+  }
 );

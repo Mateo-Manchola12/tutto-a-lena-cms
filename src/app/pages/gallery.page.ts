@@ -1,22 +1,15 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core'
+import type { CdkDragDrop } from '@angular/cdk/drag-drop'
+import { CdkDrag, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop'
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, inject, signal } from '@angular/core'
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms'
 import { MatButtonToggleModule } from '@angular/material/button-toggle'
 import { MatProgressBarModule } from '@angular/material/progress-bar'
 import { MatSnackBar } from '@angular/material/snack-bar'
 import { MatTooltipModule } from '@angular/material/tooltip'
-import { CdkDrag, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop'
-import type { CdkDragDrop } from '@angular/cdk/drag-drop'
 import type { GalleryImage } from '../../types/gallery'
-import type { GalleryFormArray, GalleryImageFormGroup, ActiveBreakpoint } from './gallery/gallery-form.types'
 import { GalleryService } from '../services/gallery.service'
 import { GalleryImageEditorComponent } from './gallery/components/gallery-image-editor.component'
+import type { ActiveBreakpoint, GalleryFormArray, GalleryImageFormGroup } from './gallery/gallery-form.types'
 
 const PREVIEW_COLS: Record<ActiveBreakpoint, number> = {
   default: 2,
@@ -34,26 +27,6 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
   md: '100%',
 }
 
-// Imágenes de ejemplo (14 fotos de public/images/).
-// storagePath vacío: al eliminar no borra nada en Storage.
-// TODO: Eliminar este botón cuando el cliente suba sus fotos reales.
-const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
-  { src: '/images/oven-mosaic-front-face.jpg', storagePath: '', alt: 'Horno de leña con mosaico frontal', description: 'Nuestro hermoso horno artesanal', colSpan: { default: 2, sm: 2, md: 2 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/hero-food-truck.jpg', storagePath: '', alt: 'Food truck Tutto a Leña', description: 'Nuestro icónico food truck donde todo comenzó', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/chef-puttin-pizza-in-oven.jpg', storagePath: '', alt: 'Chef colocando pizza en horno de leña', description: 'El arte de hornear en fuego real', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/vertical-full-pizza.jpg', storagePath: '', alt: 'Pizza completa recién horneada', description: 'Perfección recién salida del horno', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/empanada-realy-good-looking.jpg', storagePath: '', alt: 'Empanadas artesanales', description: 'Empanadas doradas y crujientes', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/pizza-slice-cool-photo.jpg', storagePath: '', alt: 'Porción de pizza', description: 'Cada porción es una obra de arte', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: true },
-  { src: '/images/oven-inside-fire-pizza.jpg', storagePath: '', alt: 'Interior del horno con fuego y pizza', description: 'El corazón de nuestra cocina', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 1, sm: 1, md: 1 }, featured: false },
-  { src: '/images/pizza-and-beer.jpg', storagePath: '', alt: 'Pizza y cerveza', description: 'La combinación perfecta', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-  { src: '/images/serving-beer.jpg', storagePath: '', alt: 'Sirviendo cerveza tirada', description: 'Cerveza artesanal bien fría', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-  { src: '/images/oven-mosaic.jpg', storagePath: '', alt: 'Horno de leña decorado', description: 'Diseño único en cada detalle', colSpan: { default: 2, sm: 2, md: 2 }, rowSpan: { default: 1, sm: 1, md: 1 }, featured: false },
-  { src: '/images/empanada.jpg', storagePath: '', alt: 'Empanada individual', description: 'Detalle de nuestra empanada artesanal', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-  { src: '/images/empanada-and-beer.jpg', storagePath: '', alt: 'Empanadas con cerveza', description: 'Snack perfecto para compartir', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-  { src: '/images/3-dessert-piramid.jpg', storagePath: '', alt: 'Pirámide de postres', description: 'Dulce final para tu experiencia', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-  { src: '/images/pizza-and-beer2.jpg', storagePath: '', alt: 'Pizza y cerveza en mesa', description: 'Momentos para disfrutar', colSpan: { default: 1, sm: 1, md: 1 }, rowSpan: { default: 2, sm: 2, md: 2 }, featured: false },
-]
-
 @Component({
   selector: 'app-gallery',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,61 +41,73 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
     CdkDragPlaceholder,
     GalleryImageEditorComponent,
   ],
-  styles: [`
-    :host { display: block; }
-    .grid-preview {
-      display: grid;
-      gap: 8px;
-      grid-auto-rows: 160px;
-      transition: grid-template-columns 0.3s ease;
-    }
-    .grid-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: outline 0.15s ease;
-    }
-    .grid-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      pointer-events: none;
-      user-select: none;
-    }
-    .cdk-drag-placeholder {
-      opacity: 0.4;
-      border: 2px dashed rgba(255,255,255,0.3);
-      border-radius: 12px;
-    }
-    .cdk-drag-animating { transition: transform 250ms cubic-bezier(0,0,0.2,1); }
-    .cdk-drop-list-dragging .grid-item:not(.cdk-drag-placeholder) {
-      transition: transform 250ms cubic-bezier(0,0,0.2,1);
-    }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      .grid-preview {
+        display: grid;
+        gap: 8px;
+        grid-auto-rows: 160px;
+        transition: grid-template-columns 0.3s ease;
+      }
+      .grid-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: outline 0.15s ease;
+      }
+      .grid-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+        user-select: none;
+      }
+      .cdk-drag-placeholder {
+        opacity: 0.4;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+      }
+      .cdk-drag-animating {
+        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+      }
+      .cdk-drop-list-dragging .grid-item:not(.cdk-drag-placeholder) {
+        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+      }
+    `,
+  ],
   template: `
     @if (galleryService.loading()) {
       <div class="flex h-full w-full items-center justify-center">
         <div class="border-primary size-20 animate-spin rounded-full border-4 border-t-transparent"></div>
       </div>
     } @else {
-      <div class="relative mx-auto flex max-w-screen-xl flex-col gap-6 pb-10">
-        <div class="from-primary/10 absolute inset-0 -z-10 rounded-3xl bg-linear-to-br via-transparent to-transparent blur-3xl"></div>
+      <div class="relative mx-auto flex flex-col gap-6 pb-10">
+        <div
+          class="from-primary/10 absolute inset-0 -z-10 rounded-3xl bg-linear-to-br via-transparent to-transparent blur-3xl"
+        ></div>
 
         <!-- ===== HEADER ===== -->
-        <header class="from-surface-light to-surface/80 rounded-2xl border border-white/10 bg-linear-to-br p-6 shadow-xl">
+        <header
+          class="from-surface-light to-surface/80 rounded-2xl border border-white/10 bg-linear-to-br p-6 shadow-xl"
+        >
           <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div class="space-y-2">
-              <h1 class="font-display text-3xl font-bold leading-tight lg:text-4xl">Galería</h1>
+              <h1 class="font-display text-3xl leading-tight font-bold lg:text-4xl">Galería</h1>
               <p class="text-muted-foreground max-w-2xl text-sm">
-                Sube fotos, ajusta su tamaño en el grid y define qué images aparecen en la portada.
-                Cambia el breakpoint para previsualizar cómo se verá en móvil, tablet y escritorio.
+                Sube fotos, ajusta su tamaño en el grid y define qué images aparecen en la portada. Cambia el breakpoint
+                para previsualizar cómo se verá en móvil, tablet y escritorio.
               </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
               <!-- Status badge -->
-              <span class="bg-primary/15 text-primary border-primary/30 inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold">
+              <span
+                class="bg-primary/15 text-primary border-primary/30 inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
+              >
                 @if (uploadingCount() > 0) {
                   <i class="mat-icon mr-1 text-sm leading-none">upload</i>
                   Subiendo {{ uploadingCount() }} foto{{ uploadingCount() > 1 ? 's' : '' }}…
@@ -135,50 +120,17 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
                 }
               </span>
 
-              <!-- Breakpoint switcher -->
-              <mat-button-toggle-group
-                [value]="activeBreakpoint()"
-                (change)="activeBreakpoint.set($event.value)"
-              >
-                @for (bp of breakpointKeys; track bp) {
-                  <mat-button-toggle [value]="bp" class="text-xs">
-                    {{ breakpointLabel[bp] }}
-                  </mat-button-toggle>
-                }
-              </mat-button-toggle-group>
-
               <!-- Upload button -->
               <button
                 type="button"
-                class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-white/5 px-4 text-sm hover:bg-white/10 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-white/5 px-4 text-sm transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                 [disabled]="uploadingCount() > 0"
                 (click)="fileInput.click()"
               >
                 <i class="mat-icon text-base">add_photo_alternate</i>
                 Añadir fotos
               </button>
-              <input
-                #fileInput
-                type="file"
-                multiple
-                accept="image/*"
-                class="hidden"
-                (change)="onAddFiles($event)"
-              />
-
-              <!-- Seed button — TODO: eliminar cuando el cliente suba sus fotos reales -->
-              @if (form.length === 0 && uploadingCount() === 0) {
-                <button
-                  type="button"
-                  matTooltip="Carga las 14 fotos de ejemplo del sitio (no usan Firebase Storage)"
-                  matTooltipPosition="above"
-                  class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-4 text-sm text-amber-300 hover:bg-amber-500/20 transition-colors"
-                  (click)="seedGallery()"
-                >
-                  <i class="mat-icon text-base">auto_stories</i>
-                  Cargar ejemplos
-                </button>
-              }
+              <input #fileInput type="file" multiple accept="image/*" class="hidden" (change)="onAddFiles($event)" />
 
               <!-- Save button -->
               <button
@@ -200,9 +152,9 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
             <div class="flex flex-col gap-3">
               @for (entry of activeUploads().entries(); track entry[0]) {
                 <div class="flex items-center gap-3">
-                  <span class="w-40 truncate text-xs text-muted-foreground">{{ entry[0] }}</span>
+                  <span class="text-muted-foreground w-40 truncate text-xs">{{ entry[0] }}</span>
                   <mat-progress-bar mode="determinate" [value]="entry[1]" class="flex-1"></mat-progress-bar>
-                  <span class="w-10 text-right text-xs text-muted-foreground">{{ entry[1] }}%</span>
+                  <span class="text-muted-foreground w-10 text-right text-xs">{{ entry[1] }}%</span>
                 </div>
               }
             </div>
@@ -212,12 +164,25 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
         <!-- ===== MAIN AREA ===== -->
         <div class="flex gap-5">
           <!-- Preview Panel -->
-          <div class="from-surface-light to-surface flex-1 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg">
-            <!-- Viewport sizing indicator -->
-            <div class="mb-4 flex items-center gap-2">
-              <span class="text-xs text-muted-foreground">Vista previa:</span>
-              <span class="rounded bg-white/10 px-2 py-0.5 text-xs font-mono">{{ previewWidth() }}</span>
-              <span class="text-xs text-muted-foreground">· {{ activeCols() }} columnas · filas de 160px</span>
+          <div
+            class="from-surface-light to-surface flex-1 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg"
+          >
+            <div class="mb-4 flex items-center justify-between">
+              <!-- Viewport sizing indicator -->
+              <div class="mb-4 flex items-center gap-2">
+                <span class="text-muted-foreground text-xs">Vista previa:</span>
+                <span class="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">{{ previewWidth() }}</span>
+                <span class="text-muted-foreground text-xs">· {{ activeCols() }} columnas · filas de 160px</span>
+              </div>
+
+              <!-- Breakpoint switcher -->
+              <mat-button-toggle-group [value]="activeBreakpoint()" (change)="activeBreakpoint.set($event.value)">
+                @for (bp of breakpointKeys; track bp) {
+                  <mat-button-toggle [value]="bp" class="text-xs">
+                    {{ breakpointLabel[bp] }}
+                  </mat-button-toggle>
+                }
+              </mat-button-toggle-group>
             </div>
 
             <!-- Constrained width preview -->
@@ -226,12 +191,14 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
               [style.max-width]="previewWidth()"
             >
               @if (form.length === 0) {
-                <div class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-white/10 p-16 text-center">
+                <div
+                  class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-white/10 p-16 text-center"
+                >
                   <i class="mat-icon text-primary text-5xl">add_photo_alternate</i>
                   <div class="space-y-1">
                     <h3 class="text-xl font-semibold">Galería vacía</h3>
                     <p class="text-muted-foreground max-w-xs text-sm">
-                      Añade fotos con el botón "Añadir fotos" o carga los ejemplos para ver el resultado.
+                      Añade fotos con el botón "Añadir fotos" para empezar a construir la galería.
                     </p>
                   </div>
                 </div>
@@ -251,7 +218,6 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
                       [class.outline-2]="selectedIndex() === i"
                       [style.grid-column]="'span ' + getColSpan(ctrl)"
                       [style.grid-row]="'span ' + getRowSpan(ctrl)"
-                      [style.transform]="'rotate(' + ctrl.value.rotate + 'deg)'"
                       (click)="selectedIndex.set(i)"
                       cdkDrag
                       [cdkDragData]="i"
@@ -260,7 +226,7 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
 
                       <!-- Drag handle -->
                       <div
-                        class="absolute left-2 top-2 flex size-7 cursor-grab items-center justify-center rounded-full bg-black/50 text-white opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
+                        class="absolute top-2 left-2 flex size-7 cursor-grab items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100"
                         cdkDragHandle
                       >
                         <i class="mat-icon text-sm">drag_indicator</i>
@@ -268,18 +234,23 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
 
                       <!-- Featured badge -->
                       @if (ctrl.value.featured) {
-                        <div class="absolute right-2 top-2 rounded-full bg-primary/80 px-2 py-0.5 text-xs text-white">
+                        <div class="bg-primary/80 absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs text-white">
                           ★ Home
                         </div>
                       }
 
                       <!-- Order number -->
-                      <div class="absolute bottom-2 left-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-xs text-white font-bold">
+                      <div
+                        class="absolute bottom-2 left-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-xs font-bold text-white"
+                      >
                         {{ i + 1 }}
                       </div>
 
                       <!-- Drag placeholder -->
-                      <div *cdkDragPlaceholder class="absolute inset-0 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5"></div>
+                      <div
+                        *cdkDragPlaceholder
+                        class="border-primary/40 bg-primary/5 absolute inset-0 rounded-xl border-2 border-dashed"
+                      ></div>
                     </div>
                   }
                 </div>
@@ -289,7 +260,9 @@ const SAMPLE_IMAGES: Omit<GalleryImage, 'id' | 'rotate' | 'order'>[] = [
 
           <!-- Sidebar Editor -->
           @if (selectedIndex() !== null && selectedCtrl()) {
-            <div class="from-surface-light to-surface w-72 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b shadow-lg">
+            <div
+              class="from-surface-light to-surface w-96 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b shadow-lg"
+            >
               <app-gallery-image-editor
                 [control]="selectedCtrl()!"
                 (editorClose)="selectedIndex.set(null)"
@@ -323,7 +296,7 @@ export class GalleryPage {
     return i !== null ? (this.form.controls[i] ?? null) : null
   })
 
-  readonly form = (this.fb.array([]) as unknown) as GalleryFormArray
+  readonly form = this.fb.array([]) as unknown as GalleryFormArray
 
   constructor() {
     // Hydrate form once service data is ready
@@ -484,22 +457,5 @@ export class GalleryPage {
     } catch {
       this.snackBar.open('Error al guardar la galería', 'Cerrar')
     }
-  }
-
-  seedGallery() {
-    SAMPLE_IMAGES.forEach((img, i) => {
-      const rotate = Math.floor(Math.random() * 7) - 3
-      this.form.push(
-        this.createImageFormGroup({ ...img, id: crypto.randomUUID(), rotate, order: i }),
-        { emitEvent: false },
-      )
-    })
-    this.syncOrderValues()
-    this.form.markAsDirty()
-    this.snackBar.open(
-      '14 imágenes de ejemplo cargadas — guarda los cambios para publicar.',
-      'OK',
-      { duration: 6000 },
-    )
   }
 }
