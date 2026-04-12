@@ -75,14 +75,13 @@ type EventsPageFormGroup = FormGroup<{
           </div>
         </header>
 
-        <section
-          class="from-surface-light to-surface rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg"
-        >
+        <section class="from-surface-light to-surface rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg">
           <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="space-y-1">
               <h2 class="text-2xl font-bold">Listado de eventos</h2>
               <p class="text-muted-foreground text-sm">
-                Cada guardado genera un nuevo borrador versionado en Firestore y el front lo publicará cuando lances el build.
+                Cada guardado genera un nuevo borrador versionado en Firestore y el front lo publicará cuando lances el
+                build.
               </p>
             </div>
 
@@ -90,7 +89,9 @@ type EventsPageFormGroup = FormGroup<{
           </div>
 
           @if (!eventControls().length) {
-            <div class="bg-surface-dark/50 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 p-10 text-center">
+            <div
+              class="bg-surface-dark/50 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/10 p-10 text-center"
+            >
               <i class="mat-icon text-primary text-5xl">event_available</i>
               <div class="space-y-1">
                 <h3 class="text-xl font-semibold">No hay eventos cargados</h3>
@@ -110,7 +111,8 @@ type EventsPageFormGroup = FormGroup<{
                   <mat-expansion-panel-header>
                     <mat-panel-title>{{ eventGroup.controls.title.value || 'Nuevo evento' }}</mat-panel-title>
                     <mat-panel-description>
-                      {{ eventGroup.controls.date.value || 'Sin fecha' }} · {{ eventGroup.controls.location.value || 'Sin ubicación' }}
+                      {{ eventGroup.controls.date.value || 'Sin fecha' }} ·
+                      {{ eventGroup.controls.location.value || 'Sin ubicación' }}
                     </mat-panel-description>
                     <button
                       type="button"
@@ -168,7 +170,7 @@ type EventsPageFormGroup = FormGroup<{
                       <input matInput formControlName="ctaUrl" placeholder="/contacto o https://..." />
                     </mat-form-field>
 
-                    <div class="xl:col-span-2 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/10 p-4">
+                    <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 xl:col-span-2">
                       <label class="flex items-center gap-3 text-sm font-medium">
                         <input type="checkbox" [formControl]="eventGroup.controls.featured" />
                         Mostrar como evento destacado
@@ -277,7 +279,9 @@ export class EventsPage {
       this.form.controls.events.push(this.createEventGroup(event))
     }
 
-    this.expandedEventId.set(this.form.controls.events.length ? this.form.controls.events.at(0).controls.id.value : null)
+    this.expandedEventId.set(
+      this.form.controls.events.length ? this.form.controls.events.at(0).controls.id.value : null,
+    )
     this.form.markAsPristine()
   }
 
@@ -286,11 +290,17 @@ export class EventsPage {
       {
         id: this.formBuilder.nonNullable.control(event.id),
         title: this.formBuilder.nonNullable.control(event.title, [Validators.required, Validators.maxLength(120)]),
-        description: this.formBuilder.nonNullable.control(event.description, [Validators.required, Validators.maxLength(600)]),
+        description: this.formBuilder.nonNullable.control(event.description, [
+          Validators.required,
+          Validators.maxLength(600),
+        ]),
         date: this.formBuilder.nonNullable.control(event.date, [Validators.required]),
         startTime: this.formBuilder.nonNullable.control(event.startTime, [Validators.required]),
         endTime: this.formBuilder.nonNullable.control(event.endTime ?? ''),
-        location: this.formBuilder.nonNullable.control(event.location, [Validators.required, Validators.maxLength(160)]),
+        location: this.formBuilder.nonNullable.control(event.location, [
+          Validators.required,
+          Validators.maxLength(160),
+        ]),
         featured: this.formBuilder.nonNullable.control(event.featured),
         ctaLabel: this.formBuilder.nonNullable.control(event.cta?.label ?? ''),
         ctaUrl: this.formBuilder.nonNullable.control(event.cta?.url ?? ''),
