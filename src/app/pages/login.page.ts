@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core'
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms'
 import { MatRipple } from '@angular/material/core'
 import { MatFormFieldModule } from '@angular/material/form-field'
-import { MatIcon } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
 import { MatSnackBar } from '@angular/material/snack-bar'
 import { Router } from '@angular/router'
@@ -11,7 +10,7 @@ import { getValidationErrorMessage } from '../utils/validation-error-message'
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIcon, MatRipple],
+  imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatRipple],
   template: `
     <main class="mx-auto flex h-full w-lg flex-col items-stretch justify-center gap-14 px-2">
       <h1 class="text-center text-4xl">Iniciar Sesión</h1>
@@ -44,9 +43,9 @@ import { getValidationErrorMessage } from '../utils/validation-error-message'
             placeholder="Ingrese su contraseña"
             formControlName="password"
           />
-          <mat-icon matSuffix class="cursor-pointer" (click)="togglePasswordVisibility()">{{
+          <i matSuffix class="cursor-pointer" (click)="togglePasswordVisibility()">{{
             this.isVisible() ? 'visibility_off' : 'visibility'
-          }}</mat-icon>
+          }}</i>
           @if (form.controls.password.invalid && form.controls.password.touched) {
             <mat-error>{{ passwordErrorMessage() }}</mat-error>
           }
