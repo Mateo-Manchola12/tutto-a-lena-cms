@@ -7,4 +7,8 @@ export const environment = {
     messagingSenderId: '813461022908',
     appId: '1:813461022908:web:6f45a0327002e7344448b9',
   },
+  googleMaps: {
+    apiKey: 'AIzaSyBJRtE-6pE5NjQYMxFbLuAJz0Ow38Udn10',
+    countryCode: 'es',
+  },
 }
