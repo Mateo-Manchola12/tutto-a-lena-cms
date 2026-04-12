@@ -36,10 +36,16 @@ export interface MenuTagOption {
 }
 
 export interface MenuProductEditorActions {
+  removeProduct: (menuItem: ProductFormGroup) => void
   removeIngredient: (menuItem: ProductFormGroup, ingredient: string) => void
   removeTag: (menuItem: ProductFormGroup, tag: string) => void
   addIngredient: (menuItem: ProductFormGroup, event: MatChipInputEvent) => void
   selectedTag: (menuItem: ProductFormGroup, event: MatAutocompleteSelectedEvent) => void
   getTagsFiltered: (menuItem: ProductFormGroup, text?: string | null) => MenuTagOption[]
   getTagNameById: (tagId: string) => string | undefined
+}
+
+export interface MenuCategoryEditorActions {
+  removeCategory: (category: CategoryFormGroup) => void
+  addProduct: (category: CategoryFormGroup) => void
 }
