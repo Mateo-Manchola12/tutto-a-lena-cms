@@ -24,10 +24,6 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/events.page').then((m) => m.EventsPage),
       },
       {
-        path: 'gallery',
-        loadComponent: () => import('./pages/gallery.page').then((m) => m.GalleryPage),
-      },
-      {
         path: '',
         redirectTo: 'contact-info',
         pathMatch: 'full',
