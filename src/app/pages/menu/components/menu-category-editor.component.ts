@@ -2,18 +2,25 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { ReactiveFormsModule } from '@angular/forms'
 import { MatExpansionModule } from '@angular/material/expansion'
 import { MatFormFieldModule } from '@angular/material/form-field'
-import { MatIcon } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
-import type { CategoryFormGroup, MenuProductEditorActions } from '../menu-form.types'
+import type { CategoryFormGroup, MenuCategoryEditorActions, MenuProductEditorActions } from '../menu-form.types'
 import { MenuProductEditorComponent } from './menu-product-editor.component'
 
 @Component({
   selector: 'app-menu-category-editor',
   template: `
-    <mat-expansion-panel>
+    <mat-expansion-panel [expanded]="isExpanded()">
       <mat-expansion-panel-header>
         <mat-panel-title>{{ category().value.emoji }} {{ category().value.name }}</mat-panel-title>
         <mat-panel-description>{{ category().value.description }} </mat-panel-description>
+        <button
+          type="button"
+          class="m-2 flex cursor-pointer items-center justify-center rounded-md p-1 text-red-400 hover:bg-red-500/10"
+          aria-label="Eliminar categoría"
+          (click)="$event.stopPropagation(); categoryActions().removeCategory(category())"
+        >
+          <i class="mat-icon">delete</i>
+        </button>
       </mat-expansion-panel-header>
 
       <div class="flex gap-4">
@@ -37,30 +44,35 @@ import { MenuProductEditorComponent } from './menu-product-editor.component'
 
       <mat-accordion class="w-full">
         @for (menuItem of category().controls.products.controls; track menuItem.value.id) {
-          <app-menu-product-editor [menuItem]="menuItem" [actions]="productEditorActions()" />
+          <app-menu-product-editor
+            [menuItem]="menuItem"
+            [actions]="productEditorActions()"
+            [isExpanded]="expandedProductId() === menuItem.controls.id.value"
+          />
         }
 
-        <mat-expansion-panel hideToggle>
+        <mat-expansion-panel #newProductPanel hideToggle (opened)="onCreateProduct(newProductPanel)">
           <mat-expansion-panel-header>
             <mat-panel-title>Nuevo</mat-panel-title>
-            <mat-panel-description>Agregar nueva categoría </mat-panel-description>
-            <mat-icon>add</mat-icon>
+            <mat-panel-description>Agregar nuevo producto</mat-panel-description>
+            <i class="mat-icon">add</i>
           </mat-expansion-panel-header>
         </mat-expansion-panel>
       </mat-accordion>
     </mat-expansion-panel>
   `,
-  imports: [
-    ReactiveFormsModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIcon,
-    MenuProductEditorComponent,
-  ],
+  imports: [ReactiveFormsModule, MatExpansionModule, MatFormFieldModule, MatInputModule, MenuProductEditorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuCategoryEditorComponent {
   readonly category = input.required<CategoryFormGroup>()
   readonly productEditorActions = input.required<MenuProductEditorActions>()
+  readonly categoryActions = input.required<MenuCategoryEditorActions>()
+  readonly isExpanded = input(false)
+  readonly expandedProductId = input<string | null>(null)
+
+  onCreateProduct(panel: { close: () => void }) {
+    this.categoryActions().addProduct(this.category())
+    panel.close()
+  }
 }
