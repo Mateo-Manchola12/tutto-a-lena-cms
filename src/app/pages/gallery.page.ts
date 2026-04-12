@@ -49,7 +49,7 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
       .grid-preview {
         display: grid;
         gap: 8px;
-        grid-auto-rows: 160px;
+        grid-auto-rows: 250px;
         transition: grid-template-columns 0.3s ease;
       }
       .grid-item {
@@ -57,7 +57,13 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
         overflow: hidden;
         border-radius: 12px;
         cursor: pointer;
-        transition: outline 0.15s ease;
+        transition:
+          outline 0.15s ease,
+          transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 220ms ease,
+          filter 220ms ease;
+        will-change: transform;
+        backface-visibility: hidden;
       }
       .grid-item img {
         width: 100%;
@@ -67,15 +73,46 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
         user-select: none;
       }
       .cdk-drag-placeholder {
-        opacity: 0.4;
-        border: 2px dashed rgba(255, 255, 255, 0.3);
+        opacity: 1;
+      }
+      .drag-placeholder-card {
+        height: 100%;
+        border: 2px dashed rgba(255, 255, 255, 0.45);
         border-radius: 12px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
       }
       .cdk-drag-animating {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+        transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .cdk-drop-list-dragging .cdk-drag {
+        transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1) !important;
       }
       .cdk-drop-list-dragging .grid-item:not(.cdk-drag-placeholder) {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+        transition:
+          transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+          filter 220ms ease;
+      }
+      .cdk-drop-list-dragging .grid-item:not(.cdk-drag-preview):not(.cdk-drag-placeholder) {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+      }
+      .cdk-drop-list-dragging .grid-item:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
+        filter: brightness(0.96) saturate(0.92);
+      }
+      .cdk-drop-list-receiving .grid-item {
+        transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .drag-preview-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.35),
+          0 8px 20px rgba(0, 0, 0, 0.25);
+        opacity: 0.95;
+        transform: scale(1.02);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .drag-placeholder-card {
+        transition: all 260ms ease;
       }
     `,
   ],
@@ -162,10 +199,10 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
         }
 
         <!-- ===== MAIN AREA ===== -->
-        <div class="flex gap-5">
+        <div class="flex h-238 gap-5">
           <!-- Preview Panel -->
           <div
-            class="from-surface-light to-surface flex-1 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg"
+            class="from-surface-light to-surface grid h-full flex-1 grid-rows-[auto_1fr] rounded-2xl border border-white/10 bg-linear-to-b p-5 shadow-lg"
           >
             <div class="mb-4 flex items-center justify-between">
               <!-- Viewport sizing indicator -->
@@ -186,90 +223,104 @@ const PREVIEW_WIDTH: Record<ActiveBreakpoint, string> = {
             </div>
 
             <!-- Constrained width preview -->
-            <div
-              class="mx-auto overflow-hidden rounded-xl border border-white/10 transition-all duration-300"
-              [style.max-width]="previewWidth()"
-            >
-              @if (form.length === 0) {
-                <div
-                  class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-white/10 p-16 text-center"
-                >
-                  <i class="mat-icon text-primary text-5xl">add_photo_alternate</i>
-                  <div class="space-y-1">
-                    <h3 class="text-xl font-semibold">Galería vacía</h3>
-                    <p class="text-muted-foreground max-w-xs text-sm">
-                      Añade fotos con el botón "Añadir fotos" para empezar a construir la galería.
-                    </p>
-                  </div>
-                </div>
-              } @else {
-                <div
-                  class="grid-preview"
-                  [style.grid-template-columns]="'repeat(' + activeCols() + ', 1fr)'"
-                  cdkDropList
-                  cdkDropListOrientation="mixed"
-                  (cdkDropListDropped)="onDrop($event)"
-                >
-                  @for (ctrl of form.controls; track ctrl.value.id; let i = $index) {
-                    <div
-                      class="grid-item"
-                      [class.outline]="selectedIndex() === i"
-                      [class.outline-primary]="selectedIndex() === i"
-                      [class.outline-2]="selectedIndex() === i"
-                      [style.grid-column]="'span ' + getColSpan(ctrl)"
-                      [style.grid-row]="'span ' + getRowSpan(ctrl)"
-                      (click)="selectedIndex.set(i)"
-                      cdkDrag
-                      [cdkDragData]="i"
-                    >
-                      <img [src]="ctrl.value.src" [alt]="ctrl.value.alt ?? ''" loading="lazy" />
-
-                      <!-- Drag handle -->
-                      <div
-                        class="absolute top-2 left-2 flex size-7 cursor-grab items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100"
-                        cdkDragHandle
-                      >
-                        <i class="mat-icon text-sm">drag_indicator</i>
-                      </div>
-
-                      <!-- Featured badge -->
-                      @if (ctrl.value.featured) {
-                        <div class="bg-primary/80 absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs text-white">
-                          ★ Home
-                        </div>
-                      }
-
-                      <!-- Order number -->
-                      <div
-                        class="absolute bottom-2 left-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-xs font-bold text-white"
-                      >
-                        {{ i + 1 }}
-                      </div>
-
-                      <!-- Drag placeholder -->
-                      <div
-                        *cdkDragPlaceholder
-                        class="border-primary/40 bg-primary/5 absolute inset-0 rounded-xl border-2 border-dashed"
-                      ></div>
+            <div class="overflow-auto">
+              <div
+                class="mx-auto rounded-xl border border-white/10 transition-all duration-300"
+                [style.max-width]="previewWidth()"
+              >
+                @if (form.length === 0) {
+                  <div
+                    class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-white/10 p-16 text-center"
+                  >
+                    <i class="mat-icon text-primary text-5xl">add_photo_alternate</i>
+                    <div class="space-y-1">
+                      <h3 class="text-xl font-semibold">Galería vacía</h3>
+                      <p class="text-muted-foreground max-w-xs text-sm">
+                        Añade fotos con el botón "Añadir fotos" para empezar a construir la galería.
+                      </p>
                     </div>
-                  }
-                </div>
-              }
+                  </div>
+                } @else {
+                  <div
+                    class="grid-preview"
+                    [style.grid-template-columns]="'repeat(' + activeCols() + ', 1fr)'"
+                    cdkDropList
+                    cdkDropListOrientation="mixed"
+                    (cdkDropListDropped)="onDrop($event)"
+                  >
+                    @for (ctrl of form.controls; track ctrl.value.id; let i = $index) {
+                      <div
+                        class="grid-item group"
+                        [class.outline]="selectedIndex() === i"
+                        [class.outline-primary]="selectedIndex() === i"
+                        [class.outline-2]="selectedIndex() === i"
+                        [style.grid-column]="'span ' + getColSpan(ctrl)"
+                        [style.grid-row]="'span ' + getRowSpan(ctrl)"
+                        (click)="selectedIndex.set(i)"
+                        cdkDrag
+                        [cdkDragData]="i"
+                      >
+                        <img [src]="ctrl.value.src" [alt]="ctrl.value.alt ?? ''" loading="lazy" />
+
+                        <!-- Drag handle -->
+                        <div
+                          class="absolute top-2 left-2 flex size-7 cursor-grab items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100"
+                          cdkDragHandle
+                        >
+                          <i class="mat-icon text-sm">drag_indicator</i>
+                        </div>
+
+                        <!-- Featured badge -->
+                        @if (ctrl.value.featured) {
+                          <div class="bg-primary/80 absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs text-white">
+                            ★ Home
+                          </div>
+                        }
+
+                        <!-- Order number -->
+                        <div
+                          class="absolute bottom-2 left-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-xs font-bold text-white"
+                        >
+                          {{ i + 1 }}
+                        </div>
+
+                        <ng-template cdkDragPreview [matchSize]="true">
+                          <div class="drag-preview-card size-full">
+                            <img [src]="ctrl.value.src" [alt]="ctrl.value.alt ?? ''" loading="lazy" />
+                          </div>
+                        </ng-template>
+
+                        <ng-template cdkDragPlaceholder>
+                          <div
+                            class="drag-placeholder-card"
+                            [style.grid-column]="'span ' + getColSpan(ctrl)"
+                            [style.grid-row]="'span ' + getRowSpan(ctrl)"
+                          ></div>
+                        </ng-template>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             </div>
           </div>
 
           <!-- Sidebar Editor -->
-          @if (selectedIndex() !== null && selectedCtrl()) {
-            <div
-              class="from-surface-light to-surface w-96 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b shadow-lg"
-            >
+          <div
+            class="from-surface-light to-surface w-96 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-b shadow-lg"
+          >
+            @if (selectedIndex() !== null && selectedCtrl()) {
               <app-gallery-image-editor
                 [control]="selectedCtrl()!"
                 (editorClose)="selectedIndex.set(null)"
                 (editorDelete)="onDeleteImage(selectedIndex()!)"
               />
-            </div>
-          }
+            } @else {
+              <div class="flex h-full flex-col items-center justify-start gap-4 p-5 text-center">
+                <span>Selecciona una imagen para editar sus detalles</span>
+              </div>
+            }
+          </div>
         </div>
       </div>
     }
