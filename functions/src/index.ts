@@ -13,6 +13,7 @@ import { setGlobalOptions } from "firebase-functions";
 import type { Request } from "firebase-functions/https";
 import { HttpsError, onCall, onRequest } from "firebase-functions/https";
 import { defineSecret } from "firebase-functions/params";
+import { onSchedule } from "firebase-functions/scheduler";
 
 if (getApps().length === 0) {
   initializeApp();
@@ -21,7 +22,7 @@ if (getApps().length === 0) {
 const githubApiKey = defineSecret("GITHUB_API_KEY");
 const astroCallbackToken = defineSecret("ASTRO_CALLBACK_TOKEN");
 
-type PublishCompletionStatus = "published" | "failed"
+type PublishCompletionStatus = "published" | "failed";
 
 /**
  * Extracts the shared secret sent by the deployment workflow.
@@ -83,7 +84,7 @@ function getErrorMessage(request: Request): string | null {
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({maxInstances: 10});
+setGlobalOptions({ maxInstances: 10 });
 
 // export const helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", {structuredData: true});
@@ -94,35 +95,52 @@ export const triggerAstroBuild = onCall(
     secrets: [githubApiKey],
   },
   async () => {
-    const GITHUB_TOKEN = githubApiKey.value();
-    const owner = "Mateo-Manchola12";
-    const repo = "tutto-a-lena";
-    const workFlowId = "astro.yml";
-    const ref = "main";
+    return triggerGitHubAstroBuild(githubApiKey.value());
+  }
+);
 
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workFlowId}/dispatches`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `token ${GITHUB_TOKEN}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ref}),
-      },
-    );
+/**
+ * Sends a workflow dispatch request to GitHub Actions.
+ *
+ * @param {string} githubToken GitHub token used to authenticate the request.
+ * @return {Promise<{status: string, message: string}>} Result payload.
+ */
+async function triggerGitHubAstroBuild(githubToken: string) {
+  const owner = "Mateo-Manchola12";
+  const repo = "tutto-a-lena";
+  const workFlowId = "astro.yml";
+  const ref = "main";
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new HttpsError("internal", `GitHub API error: ${text}`);
-    }
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workFlowId}/dispatches`, {
+    method: "POST",
+    headers: {
+      Authorization: `token ${githubToken}`,
+      Accept: "application/vnd.github.v3+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ref }),
+  });
 
-    return {
-      status: "ok",
-      message: "Build triggered",
-    };
+  if (!res.ok) {
+    const text = await res.text();
+    throw new HttpsError("internal", `GitHub API error: ${text}`);
+  }
+
+  return {
+    status: "ok",
+    message: "Build triggered",
+  };
+}
+
+export const scheduledAstroBuildAtMidnightSpain = onSchedule(
+  {
+    schedule: "0 0 * * *",
+    timeZone: "Europe/Madrid",
+    secrets: [githubApiKey],
   },
+  async () => {
+    await triggerGitHubAstroBuild(githubApiKey.value());
+  }
 );
 
 export const completeAstroDeploy = onRequest(
@@ -141,7 +159,7 @@ export const completeAstroDeploy = onRequest(
     const providedToken = getCallbackToken(request);
 
     if (providedToken !== astroCallbackToken.value()) {
-      response.status(401).json({status: "error", message: "Unauthorized"});
+      response.status(401).json({ status: "error", message: "Unauthorized" });
       return;
     }
 
@@ -151,7 +169,7 @@ export const completeAstroDeploy = onRequest(
       completionStatus = getCompletionStatus(request);
     } catch (error) {
       if (error instanceof HttpsError) {
-        response.status(400).json({status: "error", message: error.message});
+        response.status(400).json({ status: "error", message: error.message });
         return;
       }
 
@@ -166,7 +184,7 @@ export const completeAstroDeploy = onRequest(
       const currentSnapshot = await transaction.get(currentRef);
 
       if (!currentSnapshot.exists) {
-        return {status: "noop", message: "No current build state found"};
+        return { status: "noop", message: "No current build state found" };
       }
 
       const currentData = currentSnapshot.data();
@@ -174,7 +192,7 @@ export const completeAstroDeploy = onRequest(
       const buildId = currentData?.buildId;
 
       if (currentStatus !== "publishing" || typeof buildId !== "string" || buildId.length === 0) {
-        return {status: "noop", message: "No publishing build to finalize"};
+        return { status: "noop", message: "No publishing build to finalize" };
       }
 
       const currentPatch: Record<string, unknown> = {
@@ -188,7 +206,7 @@ export const completeAstroDeploy = onRequest(
         currentPatch.errorMessage = FieldValue.delete();
       }
 
-      transaction.set(currentRef, currentPatch, {merge: true});
+      transaction.set(currentRef, currentPatch, { merge: true });
 
       const historyRef = db.collection("builds").doc(buildId);
       const historyPatch: Record<string, unknown> = {
@@ -202,7 +220,7 @@ export const completeAstroDeploy = onRequest(
         historyPatch.errorMessage = FieldValue.delete();
       }
 
-      transaction.set(historyRef, historyPatch, {merge: true});
+      transaction.set(historyRef, historyPatch, { merge: true });
 
       return {
         status: "ok",
@@ -213,5 +231,5 @@ export const completeAstroDeploy = onRequest(
     });
 
     response.status(200).json(result);
-  },
+  }
 );
